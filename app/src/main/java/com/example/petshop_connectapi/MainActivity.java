@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         edtEmail = findViewById(R.id.edtEmail);
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
-        txtRegister = findViewById(R.id.txtRegister); // Nút chuyển sang đăng ký
+        txtRegister = findViewById(R.id.txtRegister);
 
         // Khởi tạo Retrofit
         Retrofit retrofit = new Retrofit.Builder()
@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         apiService = retrofit.create(AuthApiService.class);
 
-        // Sự kiện khi nhấn nút Login
+        // Xử lý đăng nhập
         btnLogin.setOnClickListener(v -> loginUser());
 
         // Chuyển sang màn hình đăng ký
@@ -73,8 +73,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(MainActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                    String token = response.body().getAccessToken();
+                    String name = response.body().getName(); // Giả sử API trả về tên người dùng
 
+                    // Lưu token vào SharedPreferences
+                    SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("accessToken", token);
+                    editor.putString("userName", name);
+                    editor.apply();
+
+                    // Chuyển sang HomeActivity
+                    Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                    intent.putExtra("userName", name);
+                    startActivity(intent);
+                    finish(); // Đóng MainActivity để không quay lại màn hình login
                 } else {
                     Toast.makeText(MainActivity.this, "Sai thông tin đăng nhập!", Toast.LENGTH_SHORT).show();
                 }
